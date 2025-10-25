@@ -1,9 +1,13 @@
+mod ppm_save;
+
 use image::{Rgb, RgbImage};
+
+use crate::ppm_save::save;
 
 fn main() {
     println!("Hello, world!");
 
-    let mut img = RgbImage::new(32, 32);
+    let mut img: image::ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::new(32, 32);
 
     for x in 15..=17 {
         for y in 8..24 {
@@ -12,7 +16,8 @@ fn main() {
         }
     }
 
-    img.save("src/plus.png").unwrap();
+    // img.save("src/plus.ppm").unwrap();
+    save("src/plus.ppm", &img).unwrap();
 
     // let mut img = RgbImage::new(32, 32);
 
@@ -25,3 +30,30 @@ fn main() {
 
     // img.save("src/plus.png").unwrap();
 }
+
+/*
+fn main() {
+    // Image
+
+    const IMAGE_WIDTH: i32 = 256;
+    const IMAGE_HEIGHT: i32 = 256;
+
+    // Render
+
+    print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    for j in (0..IMAGE_HEIGHT).rev() {
+        for i in 0..IMAGE_WIDTH {
+            let r = i as f64 / (IMAGE_WIDTH - 1) as f64;
+            let g = j as f64 / (IMAGE_HEIGHT - 1) as f64;
+            let b = 0.25;
+
+            let ir = (255.999 * r) as i32;
+            let ig = (255.999 * g) as i32;
+            let ib = (255.999 * b) as i32;
+
+            print!("{} {} {}\n", ir, ig, ib);
+        }
+    }
+}
+*/
