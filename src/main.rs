@@ -1,47 +1,27 @@
-mod ppm_save;
+use crate::color::{Color, write_color};
 
-use image::{Rgb, RgbImage};
+mod color;
+// mod save_ppm;
+mod vec3;
 
-use crate::ppm_save::save;
+const IMAGE_WIDTH: u32 = 256;
+const IMAGE_HEIGHT: u32 = 256;
 
+/// TODO: make it work with image crate
 fn main() {
     println!("Hello, world!");
 
-    let mut img: image::ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::new(32, 32);
+    // let mut img: image::ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    for x in 15..=17 {
-        for y in 8..24 {
-            img.put_pixel(x, y, Rgb([255, 0, 0]));
-            img.put_pixel(y, x, Rgb([255, 0, 0]));
-        }
-    }
-
-    save("src/plus.ppm", &img).unwrap();
-}
-
-/*
-fn main() {
-    // Image
-
-    const IMAGE_WIDTH: i32 = 256;
-    const IMAGE_HEIGHT: i32 = 256;
-
-    // Render
-
-    print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
-
-    for j in (0..IMAGE_HEIGHT).rev() {
-        for i in 0..IMAGE_WIDTH {
-            let r = i as f64 / (IMAGE_WIDTH - 1) as f64;
-            let g = j as f64 / (IMAGE_HEIGHT - 1) as f64;
+    for y in 0..IMAGE_HEIGHT {
+        eprint!("\rProgress: {y}/{}", IMAGE_HEIGHT - 1);
+        for x in 0..IMAGE_WIDTH {
+            let r = x as f64 / (IMAGE_WIDTH - 1) as f64;
+            let g = y as f64 / (IMAGE_HEIGHT - 1) as f64;
             let b = 0.25;
 
-            let ir = (255.999 * r) as i32;
-            let ig = (255.999 * g) as i32;
-            let ib = (255.999 * b) as i32;
-
-            print!("{} {} {}\n", ir, ig, ib);
+            let color = Color::new(r, g, b);
+            write_color(&mut std::io::stdout(), color);
         }
     }
 }
-*/
