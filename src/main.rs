@@ -21,22 +21,34 @@ const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 /// `b = 2b * (a - C)`
 /// `c = (a - C) * (a - C) - r ^ 2`
 /// `oc = (a - C)`
-fn hit_sphere(center: Point3, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(center: Point3, radius: f64, r: &Ray) -> f64 {
     let oc = r.orig() - center;
     let a = vec3::dot(r.dir(), r.dir());
-    let b = 2.0 * vec3::dot(oc, r.dir());
+    // optimization: use b/2, and it simplifies operations
+    let half_b = vec3::dot(oc, r.dir());
     let c = vec3::dot(oc, oc) - radius * radius;
 
     // we only care that there *is* a solution:
-    b * b - 4.0 * a * c >= 0.0
+    let discriminant = half_b * half_b - a * c;
+
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-half_b - discriminant.sqrt()) / a
+    }
 }
 
 fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.1, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        // the normal is hit point minus center
+        let n = vec3::norm(r.at(t) - Vec3::new(0.0, 0.0, -1.0));
+
+        // map from [-1, 1] to [0, 1]
+        return 0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
     }
 
-    let unit_dir = vec3::unit_vector(r.dir());
+    let unit_dir = vec3::norm(r.dir());
 
     // maps y which should go from [-1, 1] to [0, 1]
     let t = 0.5 * (unit_dir.y() + 1.0);
