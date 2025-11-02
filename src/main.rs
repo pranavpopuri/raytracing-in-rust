@@ -1,5 +1,7 @@
 use crate::{
+    camera::Camera,
     color::{Color, write_color},
+    common::rand_double,
     hittable::{HitRecord, Hittable},
     hittable_list::HittableList,
     ray::Ray,
@@ -7,6 +9,9 @@ use crate::{
     vec3::{Point3, Vec3},
 };
 
+use std::time::Instant;
+
+mod camera;
 mod color;
 mod common;
 mod hittable;
@@ -19,6 +24,7 @@ mod vec3;
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_WIDTH: i32 = 400;
 const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
+const SAMPLES_PER_PIXEL: i32 = 100;
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
     let mut rec = HitRecord::new();
@@ -38,39 +44,43 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
 
 /// TODO: make it work with image crate
 fn main() {
-    // let mut img: image::ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
-    let viewport_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-
-    // right hand rule means in front of camera is actually negative z
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
-
+    // world
     let mut world = HittableList::new();
     world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
     world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     println!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
 
+    // camera
+    let cam = Camera::new();
+
     // top of y == 0 in file, but top of y == height in math space
     for y in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rProgress: {}/{}", IMAGE_HEIGHT - 1 - y, IMAGE_HEIGHT - 1);
         for x in 0..IMAGE_WIDTH {
-            let u = x as f64 / (IMAGE_WIDTH - 1) as f64;
-            let v = y as f64 / (IMAGE_HEIGHT - 1) as f64;
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+            for _ in 0..SAMPLES_PER_PIXEL {
+                // u goes from 0 to 1
+                // because horiz is width IMAGE_WIDTH
+                // TODO: if division is so slow, why don't we change this?
+                // instead, just let x vary, and let horiz be (1, 0, 0)
+                let u = (x as f64 + rand_double()) / (IMAGE_WIDTH - 1) as f64;
+                let v = (y as f64 + rand_double()) / (IMAGE_HEIGHT - 1) as f64;
+                let r = cam.get_ray(u, v);
+                pixel_color += ray_color(&r, &world);
+            }
 
-            let r = Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + v * vertical - origin,
-            );
+            write_color(&mut std::io::stdout(), pixel_color, SAMPLES_PER_PIXEL);
+            // let u = x as f64 / (IMAGE_WIDTH - 1) as f64;
+            // let v = y as f64 / (IMAGE_HEIGHT - 1) as f64;
 
-            let pixel_color = ray_color(&r, &world);
-            write_color(&mut std::io::stdout(), pixel_color);
+            // let r = Ray::new(
+            //     origin,
+            //     lower_left_corner + u * horizontal + v * vertical - origin,
+            // );
+
+            // let pixel_color = ray_color(&r, &world);
+            // write_color(&mut std::io::stdout(), pixel_color);
         }
     }
 }
