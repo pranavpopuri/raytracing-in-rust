@@ -12,11 +12,13 @@ pub fn write_color(out: &mut impl Write, pixel_color: Color, samples_per_pixel: 
     let mut b = pixel_color.z();
 
     // multiplication is faster than division
-    // this averages out
+    // this will average out all the contributions by samplings
+    // also, color correction
+    // https://en.wikipedia.org/wiki/Gamma_correction
     let scale = 1.0 / samples_per_pixel as f64;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r = (r * scale).sqrt();
+    g = (g * scale).sqrt();
+    b = (b * scale).sqrt();
 
     // map to [0, 255]
     // don't use 256 because of rounding error, and don't use 255 because it rounds down

@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
+use crate::common::{rand_double, rand_range};
+
 #[derive(Copy, Clone, Default)]
 pub struct Vec3 {
     e: [f64; 3],
@@ -29,6 +31,18 @@ impl Vec3 {
 
     pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
+    }
+
+    pub fn rand() -> Vec3 {
+        Vec3::new(rand_double(), rand_double(), rand_double())
+    }
+
+    pub fn rand_range(min: f64, max: f64) -> Vec3 {
+        Vec3::new(
+            rand_range(min, max),
+            rand_range(min, max),
+            rand_range(min, max),
+        )
     }
 }
 
@@ -140,4 +154,24 @@ pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
 
 pub fn norm(v: Vec3) -> Vec3 {
     v / v.length()
+}
+
+/// Random vec within unit sphere
+fn rand_in_unit_sphere() -> Vec3 {
+    // TODO: make this a better algorithm (benchmark)
+    loop {
+        let p = Vec3::rand_range(-1.0, 1.0);
+        if p.length_squared() >= 1.0 {
+            continue;
+        }
+        return p;
+    }
+}
+
+/// Random point on a unit sphere, if you offset that with normal
+/// then you get lambertian scattering
+/// Lambertian scattering
+/// https://en.wikipedia.org/wiki/Lambertian_reflectance
+pub fn rand_unit_vector() -> Vec3 {
+    norm(rand_in_unit_sphere())
 }

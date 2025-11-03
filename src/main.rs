@@ -6,10 +6,8 @@ use crate::{
     hittable_list::HittableList,
     ray::Ray,
     sphere::Sphere,
-    vec3::{Point3, Vec3},
+    vec3::Point3,
 };
-
-use std::time::Instant;
 
 mod camera;
 mod color;
@@ -25,12 +23,25 @@ const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_WIDTH: i32 = 400;
 const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 const SAMPLES_PER_PIXEL: i32 = 100;
+const MAX_DEPTH: i32 = 3;
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
     let mut rec = HitRecord::new();
-    if world.hit(r, 0.0, f64::INFINITY, &mut rec) {
-        // map from -1 to 1 to 0 to 1
-        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+
+    // Rays w/ t close to zero, might
+    // accidentally hit the surface it just reflected. BAD
+    if world.hit(r, 0.001, f64::INFINITY, &mut rec) {
+        let dir = rec.normal + vec3::rand_unit_vector();
+        let color = ray_color(&Ray::new(rec.p, dir), world, depth - 1);
+
+        // each time you bounce, the color is halved
+        // so, at the shadow, there should be lots of bounces...
+        // due to "ambient lighting", everything is lit up
+        return 0.5 * color;
     }
 
     let unit_dir = vec3::norm(r.dir());
@@ -67,20 +78,11 @@ fn main() {
                 let u = (x as f64 + rand_double()) / (IMAGE_WIDTH - 1) as f64;
                 let v = (y as f64 + rand_double()) / (IMAGE_HEIGHT - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world);
+
+                pixel_color += ray_color(&r, &world, MAX_DEPTH);
             }
 
             write_color(&mut std::io::stdout(), pixel_color, SAMPLES_PER_PIXEL);
-            // let u = x as f64 / (IMAGE_WIDTH - 1) as f64;
-            // let v = y as f64 / (IMAGE_HEIGHT - 1) as f64;
-
-            // let r = Ray::new(
-            //     origin,
-            //     lower_left_corner + u * horizontal + v * vertical - origin,
-            // );
-
-            // let pixel_color = ray_color(&r, &world);
-            // write_color(&mut std::io::stdout(), pixel_color);
         }
     }
 }
