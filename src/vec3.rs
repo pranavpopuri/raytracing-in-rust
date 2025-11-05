@@ -1,3 +1,4 @@
+use core::f64;
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
@@ -43,6 +44,12 @@ impl Vec3 {
             rand_range(min, max),
             rand_range(min, max),
         )
+    }
+
+    pub fn near_zero(&self) -> bool {
+        // use the std eps, which is 1.0e-7 > 1.0e-8
+        let eps = f64::EPSILON;
+        self.e[0].abs() < eps && self.e[1].abs() < eps && self.e[2].abs() < eps
     }
 }
 
@@ -152,6 +159,7 @@ pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
     )
 }
 
+/// TODO: make this an instance method
 pub fn norm(v: Vec3) -> Vec3 {
     v / v.length()
 }
@@ -174,4 +182,11 @@ fn rand_in_unit_sphere() -> Vec3 {
 /// https://en.wikipedia.org/wiki/Lambertian_reflectance
 pub fn rand_unit_vector() -> Vec3 {
     norm(rand_in_unit_sphere())
+}
+
+/// Remember, `projn v = (v * n / n * n)n`
+/// But since `n` is a unit, `(v * n)n` is sufficient as a projection onto n
+/// which is `b` which subtracts v to create the reflection
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * dot(v, n) * n
 }

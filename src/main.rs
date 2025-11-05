@@ -1,9 +1,12 @@
+use std::rc::Rc;
+
 use crate::{
     camera::Camera,
     color::{Color, write_color},
     common::rand_double,
     hittable::{HitRecord, Hittable},
     hittable_list::HittableList,
+    material::{Lambertian, Metal},
     ray::Ray,
     sphere::Sphere,
     vec3::Point3,
@@ -14,6 +17,7 @@ mod color;
 mod common;
 mod hittable;
 mod hittable_list;
+mod material;
 mod sphere;
 // mod save_ppm;
 mod ray;
@@ -35,15 +39,23 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // Rays w/ t close to zero, might
     // accidentally hit the surface it just reflected. BAD
     if world.hit(r, 0.001, f64::INFINITY, &mut rec) {
-        let dir = rec.normal + vec3::rand_unit_vector();
-        let color = ray_color(&Ray::new(rec.p, dir), world, depth - 1);
+        let mut attenuation = Color::default();
+        let mut scattered = Ray::default();
 
-        // each time you bounce, the color is halved
-        // so, at the shadow, there should be lots of bounces...
-        // due to "ambient lighting", everything is lit up
-        return 0.5 * color;
+        if rec
+            .mat // Option<Rc<dyn Material>>
+            .as_ref() // Option<&Rc<dyn Material>>
+            .unwrap() // &Rc<dyn Material>
+            .scatter(r, &rec, &mut attenuation, &mut scattered)
+        {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+
+        // this ray was absorbed
+        return Color::new(0.0, 0.0, 0.0);
     }
 
+    // here, the ray didn't hit anything, i.e. it hit the sky
     let unit_dir = vec3::norm(r.dir());
 
     // maps y which should go from [-1, 1] to [0, 1]
@@ -56,9 +68,34 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
 /// TODO: make it work with image crate
 fn main() {
     // world
+    // TODO: move to its own function
     let mut world = HittableList::new();
-    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
+
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.8)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.8)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
 
     println!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n");
 
