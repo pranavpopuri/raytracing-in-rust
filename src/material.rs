@@ -54,11 +54,12 @@ impl Material for Lambertian {
 
 pub struct Metal {
     albedo: Color,
+    fuzz: f64,
 }
 
 impl Metal {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn new(albedo: Color, fuzz: f64) -> Self {
+        Self { albedo, fuzz }
     }
 }
 
@@ -74,7 +75,8 @@ impl Material for Metal {
         let reflected = vec3::reflect(vec3::norm(r_in.dir()), rec.normal);
 
         *attenuation = self.albedo;
-        *scattered = Ray::new(rec.p, reflected);
+
+        *scattered = Ray::new(rec.p, reflected + self.fuzz * vec3::rand_unit_vector());
 
         vec3::dot(scattered.dir(), rec.normal) > 0.0
     }
