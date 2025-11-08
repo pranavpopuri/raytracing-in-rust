@@ -17,7 +17,7 @@ use color::Color;
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
 use image::{Rgb, RgbImage};
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use sphere::Sphere;
@@ -138,6 +138,15 @@ fn main() {
 
     // Render to image.ppm
     let start = Instant::now();
+    let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
+    bar.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+        )
+        .unwrap()
+        .progress_chars("##-"),
+    );
+
     let mut image = RgbImage::new(IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32);
     for y in (0..IMAGE_HEIGHT).rev() {
         for x in 0..IMAGE_WIDTH {
@@ -155,9 +164,12 @@ fn main() {
                 Rgb(color::color_to_array(pixel_color, SAMPLES_PER_PIXEL)),
             );
         }
+
+        bar.inc(1);
     }
 
     image.save("image.png").unwrap();
     let end = Instant::now().duration_since(start);
-    println!("Time taken: {}", end.as_micros() / 1000);
+    bar.finish();
+    println!("Time taken: {}s", (end.as_micros() / 1000) as f64 / 1000.0);
 }
