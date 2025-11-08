@@ -3,27 +3,25 @@ mod color;
 mod common;
 mod config;
 mod hittable;
-mod hittable_list;
 mod material;
 mod ray;
-mod sphere;
 mod vec3;
 
 use std::rc::Rc;
 use std::time::Instant;
 
+use crate::{
+    config::*,
+    hittable::{HittableList, Sphere},
+};
 use camera::Camera;
 use color::Color;
-use hittable::{HitRecord, Hittable};
-use hittable_list::HittableList;
+use hittable::Hittable;
 use image::{Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
-use sphere::Sphere;
 use vec3::Point3;
-
-use crate::config::*;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -31,17 +29,9 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    let mut rec = HitRecord::new();
-    if world.hit(r, 0.001, common::INFINITY, &mut rec) {
-        let mut attenuation = Color::default();
-        let mut scattered = Ray::default();
-        if rec
-            .mat
-            .as_ref()
-            .unwrap()
-            .scatter(r, &rec, &mut attenuation, &mut scattered)
-        {
-            return attenuation * ray_color(&scattered, world, depth - 1);
+    if let Some(hit_rec) = world.hit(r, 0.001, common::INFINITY) {
+        if let Some(scatter_rec) = hit_rec.mat.as_ref().unwrap().scatter(r, &hit_rec) {
+            return scatter_rec.attenuation * ray_color(&scatter_rec.scattered, world, depth - 1);
         }
         return Color::new(0.0, 0.0, 0.0);
     }

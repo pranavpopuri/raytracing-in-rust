@@ -1,6 +1,7 @@
 use super::Material;
 use crate::color::Color;
 use crate::hittable::HitRecord;
+use crate::material::ScatterRecord;
 use crate::ray::Ray;
 use crate::{common, vec3};
 
@@ -24,13 +25,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-    ) -> bool {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {
@@ -50,8 +45,9 @@ impl Material for Dielectric {
             vec3::refract(unit_direction, rec.normal, refraction_ratio)
         };
 
-        *attenuation = Color::new(1.0, 1.0, 1.0);
-        *scattered = Ray::new(rec.p, direction);
-        true
+        Some(ScatterRecord {
+            attenuation: Color::new(1.0, 1.0, 1.0),
+            scattered: Ray::new(rec.p, direction),
+        })
     }
 }

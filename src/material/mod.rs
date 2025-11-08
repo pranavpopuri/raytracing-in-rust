@@ -8,12 +8,11 @@ pub use dielectric::Dielectric;
 pub use lambertian::Lambertian;
 pub use metal::Metal;
 
+pub struct ScatterRecord {
+    pub attenuation: Color,
+    pub scattered: Ray,
+}
+
 pub trait Material {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-    ) -> bool;
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord>;
 }

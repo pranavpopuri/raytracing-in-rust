@@ -1,6 +1,7 @@
 use super::Material;
 use crate::color::Color;
 use crate::hittable::HitRecord;
+use crate::material::ScatterRecord;
 use crate::ray::Ray;
 use crate::vec3;
 
@@ -19,17 +20,17 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        scattered: &mut Ray,
-    ) -> bool {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         let reflected = vec3::reflect(vec3::unit_vector(r_in.direction()), rec.normal);
+        let scattered = Ray::new(rec.p, reflected + self.fuzz * vec3::random_in_unit_sphere());
 
-        *attenuation = self.albedo;
-        *scattered = Ray::new(rec.p, reflected + self.fuzz * vec3::random_in_unit_sphere());
-        vec3::dot(scattered.direction(), rec.normal) > 0.0
+        if vec3::dot(scattered.direction(), rec.normal) > 0.0 {
+            Some(ScatterRecord {
+                attenuation: self.albedo,
+                scattered,
+            })
+        } else {
+            None
+        }
     }
 }
