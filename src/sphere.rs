@@ -35,6 +35,7 @@ impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         let oc = ray.orig() - self.center;
         let a = ray.dir().length_squared();
+
         // optimization: use b/2, and it simplifies operations
         let half_b = vec3::dot(oc, ray.dir());
         let c = oc.length_squared() - self.radius * self.radius;
@@ -47,6 +48,7 @@ impl Hittable for Sphere {
         }
 
         let sqrt_d = discriminant.sqrt();
+
         let mut root = (-half_b - sqrt_d) / a;
 
         // try the other root if its invalid

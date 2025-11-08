@@ -190,3 +190,22 @@ pub fn rand_unit_vector() -> Vec3 {
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - 2.0 * dot(v, n) * n
 }
+
+/// Snell's law: (where t' is the refracted ray)
+/// eta * sin(t) = eta' * sin(t')
+/// sin(t') = eta / eta' * sin(t)
+///
+/// Now, the refracted ray R' = Rperp' + R||', where n is a normal
+/// Rperp' = eta / eta' * (R + n * cos(t))
+/// R||' = -n * sqrt(1 - |Rperp'|^2)
+///
+/// Now, since n is the opposite direction of R, but both are unit:
+/// a dot b = |a||b| cos(t), a dot b = cos(t)
+/// So, Rperp' = eta / eta' * (R + n * (-n * R))
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = f64::min(dot(-uv, n), 1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    let r_out_parallel = -f64::sqrt((1.0 - r_out_perp.length_squared()).abs()) * n;
+
+    r_out_perp + r_out_parallel
+}
