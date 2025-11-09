@@ -7,13 +7,14 @@ mod material;
 mod ray;
 mod vec3;
 
-use std::rc::Rc;
+use std::sync::Arc;
 use std::time::Instant;
 
 use crate::{
     config::*,
     hittable::{HittableList, Sphere},
 };
+
 use camera::Camera;
 use color::Color;
 use hittable::Hittable;
@@ -21,6 +22,7 @@ use image::{Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
+use rayon::prelude::*;
 use vec3::Point3;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
@@ -44,7 +46,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -64,38 +66,38 @@ fn random_scene() -> HittableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Color::random() * Color::random();
-                    let sphere_material = Rc::new(Lambertian::new(albedo));
+                    let sphere_material = Arc::new(Lambertian::new(albedo));
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Color::random_range(0.5, 1.0);
                     let fuzz = common::random_double_range(0.0, 0.5);
-                    let sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                    let sphere_material = Arc::new(Metal::new(albedo, fuzz));
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 } else {
                     // Glass
-                    let sphere_material = Rc::new(Dielectric::new(1.5));
+                    let sphere_material = Arc::new(Dielectric::new(1.5));
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
-    let material1 = Rc::new(Dielectric::new(1.5));
+    let material1 = Arc::new(Dielectric::new(1.5));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material1,
     )));
 
-    let material2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
     world.add(Box::new(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material2,
     )));
 
-    let material3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
     world.add(Box::new(Sphere::new(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
@@ -138,23 +140,29 @@ fn main() {
     );
 
     let mut image = RgbImage::new(IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32);
-    for y in (0..IMAGE_HEIGHT).rev() {
-        for x in 0..IMAGE_WIDTH {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (x as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
-                let v = (y as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64;
-                let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world, MAX_DEPTH);
-            }
 
+    for y in (0..IMAGE_HEIGHT).rev() {
+        let pixel_colors: Vec<_> = (0..IMAGE_WIDTH)
+            .into_par_iter()
+            .map(|x| {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                for _ in 0..SAMPLES_PER_PIXEL {
+                    let u = (x as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
+                    let v = (y as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64; // Use y instead of j
+                    let r = cam.get_ray(u, v);
+                    pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                }
+                (x, pixel_color) 
+            })
+            .collect();
+
+        for (x, pixel_color) in pixel_colors {
             image.put_pixel(
                 x as u32,
                 (IMAGE_HEIGHT - y - 1) as u32,
                 Rgb(color::color_to_array(pixel_color, SAMPLES_PER_PIXEL)),
             );
         }
-
         bar.inc(1);
     }
 
