@@ -1,3 +1,4 @@
+![RusTX](showcase/image.png)
 # RusTX
 - Jerry Zhang (jerryz10)
 - Shanrong (sw101)
@@ -14,8 +15,8 @@ We use software such as Blender and CAD softwares, which use ray tracing softwar
 We will likely use image crates, such as `image`, and other crates for parsing `stl` files, as well as command line arguments.
 
 ## Technical Overview
-- [ ] Complete Ray Tracing Tutorial
-- [ ] Make Ray Tracing multi-threaded (checkpoint 1)
+- [x] Complete Ray Tracing Tutorial
+- [x] Make Ray Tracing multi-threaded (checkpoint 1)
 - [ ] Render geometries other than spheres
 - [ ] Parse `.stl` files (checkpoint 2)
 - [ ] Render model.

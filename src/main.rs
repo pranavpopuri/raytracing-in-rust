@@ -19,11 +19,12 @@ use camera::Camera;
 use color::Color;
 use hittable::Hittable;
 use image::{Rgb, RgbImage};
-use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
-use rayon::prelude::*;
 use vec3::Point3;
+
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -152,7 +153,7 @@ fn main() {
                     let r = cam.get_ray(u, v);
                     pixel_color += ray_color(&r, &world, MAX_DEPTH);
                 }
-                (x, pixel_color) 
+                (x, pixel_color)
             })
             .collect();
 
@@ -163,6 +164,7 @@ fn main() {
                 Rgb(color::color_to_array(pixel_color, SAMPLES_PER_PIXEL)),
             );
         }
+
         bar.inc(1);
     }
 
