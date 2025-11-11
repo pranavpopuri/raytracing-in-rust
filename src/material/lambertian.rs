@@ -10,8 +10,8 @@ pub struct Lambertian {
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Lambertian {
-        Lambertian { albedo }
+    pub fn new(albedo: Color) -> Self {
+        Self { albedo }
     }
 }
 
