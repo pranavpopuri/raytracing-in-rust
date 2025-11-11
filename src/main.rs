@@ -64,7 +64,7 @@ fn random_scene() -> HittableList {
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                if choose_mat < 0.8 {
+                if choose_mat < 0.7 {
                     // Diffuse
                     let albedo = Color::random() * Color::random();
                     let sphere_material = Arc::new(Lambertian::new(albedo));
@@ -168,7 +168,7 @@ fn main() {
         bar.inc(1);
     }
 
-    image.save("image.png").unwrap();
+    image.save(IMAGE_PATH).unwrap();
     let end = Instant::now().duration_since(start);
     bar.finish();
     println!("Time taken: {}s", (end.as_micros() / 1000) as f64 / 1000.0);

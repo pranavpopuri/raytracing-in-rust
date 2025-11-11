@@ -11,10 +11,10 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn new(a: Color, f: f64) -> Metal {
+    pub fn new(albedo: Color, fuzz: f64) -> Metal {
         Metal {
-            albedo: a,
-            fuzz: if f < 1.0 { f } else { 1.0 },
+            albedo,
+            fuzz: if fuzz < 1.0 { fuzz } else { 1.0 },
         }
     }
 }

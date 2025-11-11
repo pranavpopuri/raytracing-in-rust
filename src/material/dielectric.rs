@@ -10,10 +10,8 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(index_of_refraction: f64) -> Dielectric {
-        Dielectric {
-            ir: index_of_refraction,
-        }
+    pub fn new(ir: f64) -> Dielectric {
+        Dielectric { ir }
     }
 
     fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
