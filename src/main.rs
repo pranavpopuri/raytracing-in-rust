@@ -12,7 +12,7 @@ use std::time::Instant;
 
 use crate::{
     config::*,
-    hittable::{HittableList, Sphere},
+    hittable::{HittableList, Sphere, Triangle},
 };
 
 use camera::Camera;
@@ -22,7 +22,6 @@ use image::{Rgb, RgbImage};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use vec3::Point3;
-
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
@@ -104,6 +103,14 @@ fn random_scene() -> HittableList {
         1.0,
         material3,
     )));
+    let material4 = Arc::new(Lambertian::new(Color::new(0.8, 0.1, 0.1)));
+    let tri = Triangle::new(
+      Point3::new(-1.0, 0.0, -3.0),
+      Point3::new(1.0, 0.0, -3.0),
+      Point3::new(0.0, 1.0, -3.0),
+      material4,
+    );
+    world.add(Box::new(tri));
 
     world
 }
