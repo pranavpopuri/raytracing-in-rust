@@ -12,18 +12,21 @@ use std::time::Instant;
 
 use crate::{
     config::*,
-    hittable::{HittableList, Sphere, Triangle},
+    hittable::{HittableList, Mesh, Sphere, Triangle},
+    material::Material,
 };
 
 use camera::Camera;
 use color::Color;
 use hittable::Hittable;
 use image::{Rgb, RgbImage};
+use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
-use vec3::Point3;
-use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
+use vec3::Point3;
+
+use std::fs::OpenOptions;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -105,24 +108,112 @@ fn random_scene() -> HittableList {
     )));
     let material4 = Arc::new(Lambertian::new(Color::new(0.8, 0.1, 0.1)));
     let tri = Triangle::new(
-      Point3::new(-1.0, 0.0, -3.0),
-      Point3::new(1.0, 0.0, -3.0),
-      Point3::new(0.0, 1.0, -3.0),
-      material4,
+        Point3::new(-1.0, 0.0, -3.0),
+        Point3::new(1.0, 0.0, -3.0),
+        Point3::new(0.0, 1.0, -3.0),
+        material4,
     );
+
     world.add(Box::new(tri));
 
     world
 }
 
+fn stl_mesh(file: &str, scale: f64) -> Mesh {
+    let mut file = OpenOptions::new()
+        .read(true)
+        .open(format!("stl_folder/{file}"))
+        .unwrap();
+    let stl = stl_io::read_stl(&mut file).unwrap();
+    let triangles = stl.into_triangle_vec();
+    println!("Triangle count: {}", triangles.len());
+
+    let mut mesh = Mesh::new();
+
+    for triangle_parsed in triangles {
+        let choice = common::random_double_range(0.0, 3.0);
+        let mat: Arc<dyn Material> = if choice < 1.0 {
+            Arc::new(Metal::new(Color::new(1.0, 1.0, 1.0), 0.0))
+        } else if choice < 2.0 {
+            Arc::new(Lambertian::new(Color::new(0.8, 0.2, 0.1)))
+        } else {
+            Arc::new(Dielectric::new(0.5))
+        };
+
+        let vertices = triangle_parsed.vertices;
+        let triangle = Triangle::new(
+            Into::<Point3>::into(vertices[0]) * scale,
+            Into::<Point3>::into(vertices[1]) * scale,
+            Into::<Point3>::into(vertices[2]) * scale,
+            mat,
+        );
+        mesh.add(triangle);
+    }
+
+    mesh
+}
+
+fn get_center(mesh: &Box<Mesh>) -> Point3 {
+    let verts = &mesh.objects;
+    // each object is a triangle
+    // each triangle has three points
+    // let's map objects so that it goes through each triangle, and finds the center of each triangle
+    // then, find the center of all of those points
+
+    let len = verts.len() as f64;
+    let sum = verts
+        .iter()
+        .map(|triangle| (triangle.vertex0 + triangle.vertex1 + triangle.vertex2) / 3.0)
+        .fold(Point3::default(), |prev, curr| prev + curr);
+
+    sum / len
+}
+
+fn avg_mag(mesh: &Box<Mesh>) -> f64 {
+    let verts = &mesh.objects;
+    // each object is a triangle
+    // each triangle has three points
+    // let's map objects so that it goes through each triangle, and finds the center of each triangle
+    // then, find the center of all of those points
+
+    let len = verts.len() as f64;
+    let sum: f64 = verts
+        .iter()
+        .map(|triangle| {
+            (triangle.vertex0.length() + triangle.vertex1.length() + triangle.vertex2.length())
+                / 3.0
+        })
+        .sum();
+
+    sum / len
+}
+
 fn main() {
+    // let mut file = OpenOptions::new()
+    //     .read(true)
+    //     .open("stl_folder/small_dragon.stl")
+    //     .unwrap();
+    // let stl = stl_io::read_stl(&mut file).unwrap();
+    // let triangles = stl.into_triangle_vec();
+    // println!("Triangle count: {}", triangles.len());
+
     // World
-    let world = random_scene();
+    let mut world = HittableList::new();
+    //random_scene();
+
+    // let mat = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.0));
+    let mesh = Box::new(stl_mesh("small_dragon.stl", 1.0 / 50.0));
+
+    let center = get_center(&mesh);
+    println!("{}", avg_mag(&mesh));
+    world.add(mesh);
+
+    println!("{center}");
 
     // Camera
     let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
-    let vup = Point3::new(0.0, 1.0, 0.0);
+    let lookat = center;
+    let vup = Point3::new(0.0, 0.0, 1.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
 

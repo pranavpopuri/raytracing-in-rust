@@ -62,7 +62,7 @@ pub type Point3 = Vec3;
 // Output formatting
 impl Display for Vec3 {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {} {}", self.e[0], self.e[1], self.e[2])
+        write!(f, "({}, {}, {})", self.e[0], self.e[1], self.e[2])
     }
 }
 
@@ -147,6 +147,14 @@ impl Div<f64> for Vec3 {
 
     fn div(self, t: f64) -> Vec3 {
         Vec3::new(self.x() / t, self.y() / t, self.z() / t)
+    }
+}
+
+impl From<stl_io::Vector<f32>> for Vec3 {
+    fn from(value: stl_io::Vector<f32>) -> Self {
+        Self {
+            e: [value.0[0] as f64, value.0[1] as f64, value.0[2] as f64],
+        }
     }
 }
 
