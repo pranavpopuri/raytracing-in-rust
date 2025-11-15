@@ -6,7 +6,8 @@ use crate::ray::Ray;
 use crate::{common, vec3};
 
 pub struct Dielectric {
-    ir: f64, // Index of refraction
+    /// Index of refraction
+    ir: f64,
 }
 
 impl Dielectric {

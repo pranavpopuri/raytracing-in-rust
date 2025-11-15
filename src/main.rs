@@ -119,7 +119,7 @@ fn random_scene() -> HittableList {
     world
 }
 
-fn stl_mesh(file: &str, scale: f64) -> Mesh {
+fn stl_mesh(file: &str, mat: Arc<dyn Material>, scale: f64) -> Mesh {
     let mut file = OpenOptions::new()
         .read(true)
         .open(format!("stl_folder/{file}"))
@@ -131,21 +131,12 @@ fn stl_mesh(file: &str, scale: f64) -> Mesh {
     let mut mesh = Mesh::new();
 
     for triangle_parsed in triangles {
-        let choice = common::random_double_range(0.0, 3.0);
-        let mat: Arc<dyn Material> = if choice < 1.0 {
-            Arc::new(Metal::new(Color::new(1.0, 1.0, 1.0), 0.0))
-        } else if choice < 2.0 {
-            Arc::new(Lambertian::new(Color::new(0.8, 0.2, 0.1)))
-        } else {
-            Arc::new(Dielectric::new(0.5))
-        };
-
         let vertices = triangle_parsed.vertices;
         let triangle = Triangle::new(
             Into::<Point3>::into(vertices[0]) * scale,
             Into::<Point3>::into(vertices[1]) * scale,
             Into::<Point3>::into(vertices[2]) * scale,
-            mat,
+            mat.clone(),
         );
         mesh.add(triangle);
     }
@@ -189,20 +180,11 @@ fn avg_mag(mesh: &Box<Mesh>) -> f64 {
 }
 
 fn main() {
-    // let mut file = OpenOptions::new()
-    //     .read(true)
-    //     .open("stl_folder/small_dragon.stl")
-    //     .unwrap();
-    // let stl = stl_io::read_stl(&mut file).unwrap();
-    // let triangles = stl.into_triangle_vec();
-    // println!("Triangle count: {}", triangles.len());
-
     // World
     let mut world = HittableList::new();
-    //random_scene();
 
-    // let mat = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.0));
-    let mesh = Box::new(stl_mesh("small_dragon.stl", 1.0 / 50.0));
+    let mat = Arc::new(Metal::new(Color::new(0.2, 0.8, 0.1), 0.2));
+    let mesh = Box::new(stl_mesh("small_dragon.stl", mat, 1.0 / 40.0));
 
     let center = get_center(&mesh);
     println!("{}", avg_mag(&mesh));

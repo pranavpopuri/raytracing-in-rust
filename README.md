@@ -1,4 +1,4 @@
-![RusTX](showcase/image.png)
+![RusTX](showcase/spheres.png)
 # RusTX
 - Jerry Zhang (jerryz10)
 - Shanrong (sw101)
@@ -17,13 +17,22 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 ## Technical Overview
 - [x] Complete Ray Tracing Tutorial
 - [x] Make Ray Tracing multi-threaded (checkpoint 1)
-- [ ] Render geometries other than spheres
-- [ ] Parse `.stl` files (checkpoint 2)
-- [ ] Render model.
+- [x] Render geometries other than spheres
+- [x] Parse `.stl` files
+- [x] Render model.
+- [ ] Multiple `.stl` files
+- [ ] Custom Skybox
+- [ ] Optimization (BVH)
+- [ ] Command-line arguments (`clap`)
+- [ ] Add debugging markers (like axes, etc.)
 
 ## Possible Challenges
 - Parsing `.stl` files may be difficult.
 - Math behind geometries other than spheres may be very technical.
+
+## Showcase
+![Dragon](./showcase/dragon.png)
+> Dragon rendered from `.stl` file
 
 # Inspirations
 - Ray Tracing Road to Rust: https://the-ray-tracing-road-to-rust.vercel.app/
