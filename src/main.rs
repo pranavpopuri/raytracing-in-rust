@@ -5,6 +5,7 @@ mod config;
 mod hittable;
 mod material;
 mod ray;
+mod stl_import;
 mod vec3;
 
 use std::sync::Arc;
@@ -14,6 +15,7 @@ use crate::{
     config::*,
     hittable::{HittableList, Mesh, Sphere, Triangle, add_axes},
     material::Material,
+    stl_import::{map_stl_triangle, parse_stl},
 };
 
 use camera::Camera;
@@ -25,8 +27,6 @@ use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use rayon::prelude::*;
 use vec3::Point3;
-
-use std::fs::OpenOptions;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -119,29 +119,26 @@ fn random_scene() -> HittableList {
     world
 }
 
-fn stl_mesh(file: &str, mat: Arc<dyn Material>, scale: f64) -> Mesh {
-    let mut file = OpenOptions::new()
-        .read(true)
-        .open(format!("stl_folder/{file}"))
-        .unwrap();
-    let stl = stl_io::read_stl(&mut file).unwrap();
-    let triangles = stl.into_triangle_vec();
-    println!("Triangle count: {}", triangles.len());
+fn stl_mesh(
+    file: &str,
+    mat: Arc<dyn Material>,
+    map: &dyn Fn(f64, f64, f64) -> (f64, f64, f64),
+) -> Mesh {
+    let triangles: Vec<_> = parse_stl(file)
+        .into_iter()
+        .map(|stl_triangle| {
+            let (p1, p2, p3) = map_stl_triangle(
+                stl_triangle,
+                // rotate around the x axis
+                // and scale by the scale amount
+                map,
+            );
 
-    let mut mesh = Mesh::new();
+            Triangle::new(p1, p2, p3, mat.clone())
+        })
+        .collect();
 
-    for triangle_parsed in triangles {
-        let vertices = triangle_parsed.vertices;
-        let triangle = Triangle::new(
-            Into::<Point3>::into(vertices[0]) * scale,
-            Into::<Point3>::into(vertices[1]) * scale,
-            Into::<Point3>::into(vertices[2]) * scale,
-            mat.clone(),
-        );
-        mesh.add(triangle);
-    }
-
-    mesh
+    Mesh::new(triangles)
 }
 
 fn get_center(mesh: &Box<Mesh>) -> Point3 {
@@ -181,22 +178,30 @@ fn avg_mag(mesh: &Box<Mesh>) -> f64 {
 
 fn main() {
     // World
-    let mut world = HittableList::new();
+    let mut world = random_scene();
 
     let mat = Arc::new(Metal::new(Color::new(0.2, 0.8, 0.1), 0.2));
-    let mesh = Box::new(stl_mesh("small_dragon.stl", mat, 1.0 / 40.0));
+    let scale = 1.0 / 40.0;
+    let mesh = Box::new(stl_mesh("small_dragon.stl", mat, &|x, y, z| {
+        (scale * x, scale * z, scale * -y)
+    }));
 
     let center = get_center(&mesh);
-    // println!("{}", avg_mag(&mesh));
-    // world.add(mesh);
 
-    println!("{center}");
+    if SHOW_DIAGONISTICS {
+        println!("Radius: {}", avg_mag(&mesh));
+        println!("Center: {center}");
+    }
 
-    add_axes(&mut world, 0.2, 1.0);
+    world.add(mesh);
+
+    if SHOW_AXES {
+        add_axes(&mut world, 0.2, 2.0);
+    }
 
     // Camera
-    let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
+    let lookfrom = Point3::new(15.0, 6.0, 3.0);
+    let lookat = center;
     let vup = Point3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
