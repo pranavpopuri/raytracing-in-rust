@@ -25,6 +25,7 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 - [ ] Optimization (BVH)
 - [ ] Command-line arguments (`clap`)
 - [ ] Add debugging markers (like axes, etc.)
+- [ ] Final Scene: animated GIF of scene
 
 ## Possible Challenges
 - Parsing `.stl` files may be difficult.
