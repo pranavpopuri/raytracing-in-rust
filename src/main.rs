@@ -12,7 +12,7 @@ use std::time::Instant;
 
 use crate::{
     config::*,
-    hittable::{HittableList, Mesh, Sphere, Triangle},
+    hittable::{HittableList, Mesh, Sphere, Triangle, add_axes},
     material::Material,
 };
 
@@ -187,15 +187,17 @@ fn main() {
     let mesh = Box::new(stl_mesh("small_dragon.stl", mat, 1.0 / 40.0));
 
     let center = get_center(&mesh);
-    println!("{}", avg_mag(&mesh));
-    world.add(mesh);
+    // println!("{}", avg_mag(&mesh));
+    // world.add(mesh);
 
     println!("{center}");
 
+    add_axes(&mut world, 0.2, 1.0);
+
     // Camera
     let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = center;
-    let vup = Point3::new(0.0, 0.0, 1.0);
+    let lookat = Point3::new(0.0, 0.0, 0.0);
+    let vup = Point3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
 
