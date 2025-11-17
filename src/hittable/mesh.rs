@@ -14,6 +14,10 @@ impl Mesh {
     pub fn add(&mut self, object: Triangle) {
         self.objects.push(object);
     }
+
+    pub fn extend(&mut self, objects: Vec<Triangle>) {
+        self.objects = objects;
+    }
 }
 
 impl Hittable for Mesh {

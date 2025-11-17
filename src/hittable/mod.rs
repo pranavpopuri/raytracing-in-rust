@@ -1,9 +1,11 @@
+mod cuboid;
 mod hittable;
 mod hittable_list;
 mod mesh;
 mod sphere;
 mod triangle;
 
+pub use cuboid::*;
 pub use hittable::*;
 pub use hittable_list::*;
 pub use mesh::*;
