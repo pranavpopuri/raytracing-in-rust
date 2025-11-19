@@ -7,16 +7,8 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    pub fn add(&mut self, object: Triangle) {
-        self.objects.push(object);
-    }
-
-    pub fn extend(&mut self, objects: Vec<Triangle>) {
-        self.objects = objects;
+    pub fn new(objects: Vec<Triangle>) -> Self {
+        Self { objects }
     }
 }
 

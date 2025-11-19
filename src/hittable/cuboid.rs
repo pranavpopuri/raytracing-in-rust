@@ -47,10 +47,7 @@ pub fn new_cuboid(
         Triangle::new(v0, v5, v1, mat.clone()),
     ];
 
-    let mut out = Mesh::new();
-    out.extend(objects);
-
-    Box::new(out)
+    Box::new(Mesh::new(objects))
 }
 
 /// x red, y green, z blue
