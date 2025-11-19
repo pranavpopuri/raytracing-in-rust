@@ -214,15 +214,16 @@ fn main() {
     let args = Args::parse();
 
     match args.command {
+      // Default command line with an output path
       Some(Commands::Default { output_path }) => {
         output = output_path;
       }
-
+      // Command line that takes in an input path to an stl file and output it to the output path
       Some(Commands::Parse { input_path, output_path }) => {
         input = input_path;
         output = output_path;
       }
-
+      // Command line with everything being able to be configured
       Some(Commands::Full { input_path, output_path, max_width, samples_per_pixel, max_depth }) => {
         input = input_path;
         output = output_path;
