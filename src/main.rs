@@ -27,7 +27,7 @@ use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use rayon::prelude::*;
 use vec3::Point3;
-use clap::{Parser, Subcommand};
+use clap::{Parser};
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -181,59 +181,24 @@ fn avg_mag(mesh: &Box<Mesh>) -> f64 {
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[command(subcommand)]
-    command: Option<Commands>
-}
+    /// Name of the person to greet
+    #[arg(short, long)]
+    stl: Option<String>,
 
-#[derive(Subcommand)]
-enum Commands {
-    Default {
-      output_path: String
-    },
-    Parse {
-      input_path: String,
-      output_path: String
-    },
-    Full {
-      input_path: String,
-      output_path: String,
-      max_width: i32,
-      samples_per_pixel: i32,
-      max_depth: i32
-    }
+    #[arg(short, long)]
+    out: Option<String>,
 }
 
 fn main() {
     let mut input = String::from("small_dragon.stl");
-    let mut width = IMAGE_WIDTH;
-    let mut height = IMAGE_HEIGHT;
     let mut output = String::from(IMAGE_PATH);
-    let mut depth = MAX_DEPTH;
-    let mut samples = SAMPLES_PER_PIXEL;
 
     let args = Args::parse();
-
-    match args.command {
-      // Default command line with an output path
-      Some(Commands::Default { output_path }) => {
-        output = output_path;
-      }
-      // Command line that takes in an input path to an stl file and output it to the output path
-      Some(Commands::Parse { input_path, output_path }) => {
-        input = input_path;
-        output = output_path;
-      }
-      // Command line with everything being able to be configured
-      Some(Commands::Full { input_path, output_path, max_width, samples_per_pixel, max_depth }) => {
-        input = input_path;
-        output = output_path;
-        width = max_width;
-        height = (width as f64 / ASPECT_RATIO) as i32;
-        samples = samples_per_pixel;
-        depth = max_depth;
-      }
-
-      None => {}
+    if let Some(stl_path) = args.stl {
+        input = stl_path;
+    }
+    if let Some(out_path) = args.out {
+        output = out_path;
     }
 
     // World
@@ -278,7 +243,7 @@ fn main() {
 
     // Render to image.ppm
     let start = Instant::now();
-    let bar = ProgressBar::new(height as u64);
+    let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
     bar.set_style(
         ProgressStyle::with_template(
             "[{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
@@ -287,18 +252,18 @@ fn main() {
         .progress_chars("##-"),
     );
 
-    let mut image = RgbImage::new(width as u32, height as u32);
+    let mut image = RgbImage::new(IMAGE_WIDTH as u32, IMAGE_HEIGHT as u32);
 
-    for y in (0..height).rev() {
-        let pixel_colors: Vec<_> = (0..width)
+    for y in (0..IMAGE_HEIGHT).rev() {
+        let pixel_colors: Vec<_> = (0..IMAGE_WIDTH)
             .into_par_iter()
             .map(|x| {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..samples {
-                    let u = (x as f64 + common::random_double()) / (width - 1) as f64;
-                    let v = (y as f64 + common::random_double()) / (height - 1) as f64; // Use y instead of j
+                for _ in 0..SAMPLES_PER_PIXEL {
+                    let u = (x as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
+                    let v = (y as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64; // Use y instead of j
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, depth);
+                    pixel_color += ray_color(&r, &world, MAX_DEPTH);
                 }
                 (x, pixel_color)
             })
@@ -307,8 +272,8 @@ fn main() {
         for (x, pixel_color) in pixel_colors {
             image.put_pixel(
                 x as u32,
-                (height - y - 1) as u32,
-                Rgb(color::color_to_array(pixel_color, samples)),
+                (IMAGE_HEIGHT - y - 1) as u32,
+                Rgb(color::color_to_array(pixel_color, SAMPLES_PER_PIXEL)),
             );
         }
 
