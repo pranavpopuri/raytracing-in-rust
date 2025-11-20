@@ -11,8 +11,12 @@ mod vec3;
 use std::sync::Arc;
 use std::time::Instant;
 
+use clap::Parser;
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
+
 use crate::{
-    config::*,
+    config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES, SHOW_DIAGONISTICS},
     hittable::{HittableList, Mesh, Sphere, Triangle, add_axes},
     material::Material,
     stl_import::{map_stl_triangle, parse_stl},
@@ -22,12 +26,9 @@ use camera::Camera;
 use color::Color;
 use hittable::Hittable;
 use image::{Rgb, RgbImage};
-use indicatif::{ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
-use rayon::prelude::*;
 use vec3::Point3;
-use clap::{Parser};
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered
@@ -177,29 +178,8 @@ fn avg_mag(mesh: &Box<Mesh>) -> f64 {
     sum / len
 }
 
-// command line arguments
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    stl: Option<String>,
-
-    #[arg(short, long)]
-    out: Option<String>,
-}
-
 fn main() {
-    let mut input = String::from("small_dragon.stl");
-    let mut output = String::from(IMAGE_PATH);
-
     let args = Args::parse();
-    if let Some(stl_path) = args.stl {
-        input = stl_path;
-    }
-    if let Some(out_path) = args.out {
-        output = out_path;
-    }
 
     // World
     let mut world = random_scene();
@@ -207,7 +187,7 @@ fn main() {
     let mat = Arc::new(Metal::new(Color::new(0.2, 0.8, 0.1), 0.2));
 
     let scale = 1.0 / 40.0;
-    let mesh = Box::new(stl_mesh(&input, mat, &|x, y, z| {
+    let mesh = Box::new(stl_mesh("small_dragon.stl", mat, &|x, y, z| {
         (scale * x, scale * z, scale * -y)
     }));
 
@@ -259,11 +239,11 @@ fn main() {
             .into_par_iter()
             .map(|x| {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..SAMPLES_PER_PIXEL {
+                for _ in 0..args.samples {
                     let u = (x as f64 + common::random_double()) / (IMAGE_WIDTH - 1) as f64;
                     let v = (y as f64 + common::random_double()) / (IMAGE_HEIGHT - 1) as f64; // Use y instead of j
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                    pixel_color += ray_color(&r, &world, args.maxdepth);
                 }
                 (x, pixel_color)
             })
@@ -273,14 +253,14 @@ fn main() {
             image.put_pixel(
                 x as u32,
                 (IMAGE_HEIGHT - y - 1) as u32,
-                Rgb(color::color_to_array(pixel_color, SAMPLES_PER_PIXEL)),
+                Rgb(color::color_to_array(pixel_color, args.samples)),
             );
         }
 
         bar.inc(1);
     }
 
-    image.save(&output).unwrap();
+    image.save(&args.out).unwrap();
     let end = Instant::now().duration_since(start);
     bar.finish();
     println!("Time taken: {}s", (end.as_micros() / 1000) as f64 / 1000.0);
