@@ -6,7 +6,7 @@ pub const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 pub const SAMPLES_PER_PIXEL: i32 = 100;
 pub const MAX_DEPTH: i32 = 50;
 pub const OUTPUT_PATH: &'static str = "image.png";
-pub const SHOW_AXES: bool = false;
+pub const SHOW_AXES: bool = true;
 pub const SHOW_DIAGONISTICS: bool = true;
 
 // command line arguments

@@ -8,11 +8,12 @@ use crate::{common, vec3};
 pub struct Dielectric {
     /// Index of refraction
     ir: f64,
+    albedo: Color,
 }
 
 impl Dielectric {
-    pub fn new(ir: f64) -> Self {
-        Self { ir }
+    pub fn new(ir: f64, albedo: Color) -> Self {
+        Self { ir, albedo }
     }
 
     fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
@@ -45,7 +46,7 @@ impl Material for Dielectric {
         };
 
         Some(ScatterRecord {
-            attenuation: Color::new(1.0, 1.0, 1.0),
+            attenuation: self.albedo,
             scattered: Ray::new(rec.p, direction),
         })
     }

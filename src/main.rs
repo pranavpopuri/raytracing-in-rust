@@ -5,7 +5,7 @@ mod config;
 mod hittable;
 mod material;
 mod ray;
-mod stl_import;
+mod stl;
 mod vec3;
 
 use std::sync::Arc;
@@ -17,9 +17,7 @@ use rayon::prelude::*;
 
 use crate::{
     config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES, SHOW_DIAGONISTICS},
-    hittable::{HittableList, Mesh, Sphere, Triangle, add_axes},
-    material::Material,
-    stl_import::{map_stl_triangle, parse_stl},
+    hittable::{HittableList, Sphere, Triangle, add_axes},
 };
 
 use camera::Camera;
@@ -81,14 +79,14 @@ fn random_scene() -> HittableList {
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 } else {
                     // Glass
-                    let sphere_material = Arc::new(Dielectric::new(1.5));
+                    let sphere_material = Arc::new(Dielectric::new(1.5, Color::new(1.0, 1.0, 1.0)));
                     world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
                 }
             }
         }
     }
 
-    let material1 = Arc::new(Dielectric::new(1.5));
+    let material1 = Arc::new(Dielectric::new(1.5, Color::new(1.0, 1.0, 1.0)));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
@@ -121,94 +119,51 @@ fn random_scene() -> HittableList {
     world
 }
 
-fn stl_mesh(
-    file: &str,
-    mat: Arc<dyn Material>,
-    map: &dyn Fn(f64, f64, f64) -> (f64, f64, f64),
-) -> Mesh {
-    let triangles: Vec<_> = parse_stl(file)
-        .into_iter()
-        .map(|stl_triangle| {
-            let (p1, p2, p3) = map_stl_triangle(
-                stl_triangle,
-                // rotate around the x axis
-                // and scale by the scale amount
-                map,
-            );
-
-            Triangle::new(p1, p2, p3, mat.clone())
-        })
-        .collect();
-
-    Mesh::new(triangles)
-}
-
-fn get_center(mesh: &Box<Mesh>) -> Point3 {
-    let verts = &mesh.objects;
-    // each object is a triangle
-    // each triangle has three points
-    // let's map objects so that it goes through each triangle, and finds the center of each triangle
-    // then, find the center of all of those points
-
-    let len = verts.len() as f64;
-    let sum = verts
-        .iter()
-        .map(|triangle| (triangle.vertex0 + triangle.vertex1 + triangle.vertex2) / 3.0)
-        .fold(Point3::default(), |prev, curr| prev + curr);
-
-    sum / len
-}
-
-fn avg_mag(mesh: &Box<Mesh>) -> f64 {
-    let verts = &mesh.objects;
-    // each object is a triangle
-    // each triangle has three points
-    // let's map objects so that it goes through each triangle, and finds the center of each triangle
-    // then, find the center of all of those points
-
-    let len = verts.len() as f64;
-    let sum: f64 = verts
-        .iter()
-        .map(|triangle| {
-            (triangle.vertex0.length() + triangle.vertex1.length() + triangle.vertex2.length())
-                / 3.0
-        })
-        .sum();
-
-    sum / len
-}
-
 fn main() {
     let args = Args::parse();
 
     // World
-    let mut world = random_scene();
+    let mut world = HittableList::new();
 
-    let mat = Arc::new(Metal::new(Color::new(0.2, 0.8, 0.1), 0.2));
+    // let mesh = stl::models::dragon(Point3::new(0.0, 0.0, 0.0));
 
-    let scale = 1.0 / 40.0;
-    let mesh = Box::new(stl_mesh("small_dragon.stl", mat, &|x, y, z| {
-        (scale * x, scale * z, scale * -y)
-    }));
+    let center = Point3::new(0.0, 0.0, 0.0);
+    // let center = mesh.center();
+    // if SHOW_DIAGONISTICS {
+    //     println!("Center: {center}");
+    // }
 
-    let center = get_center(&mesh);
+    // world.add(mesh);
 
-    if SHOW_DIAGONISTICS {
-        println!("Radius: {}", avg_mag(&mesh));
-        println!("Center: {center}");
-    }
+    let water_mat = Arc::new(Dielectric::new(1.33, Color::new(0.6, 0.8, 1.0)));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        water_mat,
+    )));
 
-    world.add(mesh);
+    let island_material = Arc::new(Lambertian::new(Color::new(1.0, 1.0, 0.5)));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        800.0,
+        island_material.clone(),
+    )));
+
+    // world.add(Box::new(Sphere::new(
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     5.0,
+    //     island_material,
+    // )));
 
     if SHOW_AXES {
         add_axes(&mut world, 0.2, 2.0);
     }
 
     // Camera
-    let lookfrom = Point3::new(15.0, 6.0, 3.0);
+    let lookfrom = Point3::new(15.0 * 3.0, 0.33 * 3.0, 3.0 * 3.0);
     let lookat = center;
     let vup = Point3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0;
+    let dist_to_focus = 30.0;
     let aperture = 0.1;
 
     let cam = Camera::new(

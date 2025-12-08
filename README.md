@@ -26,6 +26,7 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 - [ ] Command-line arguments (`clap`)
 - [ ] Add debugging markers (like axes, etc.)
 - [ ] Final Scene: animated GIF of scene
+- [ ] TODO: center each stl upon import
 
 ## Possible Challenges
 - Parsing `.stl` files may be difficult.

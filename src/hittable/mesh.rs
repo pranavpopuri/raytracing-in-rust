@@ -1,5 +1,6 @@
 use crate::hittable::{HitRecord, Hittable, Triangle};
 use crate::ray::Ray;
+use crate::vec3::Point3;
 
 #[derive(Default)]
 pub struct Mesh {
@@ -9,6 +10,41 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(objects: Vec<Triangle>) -> Self {
         Self { objects }
+    }
+
+    pub fn center(&self) -> Point3 {
+        let verts = &self.objects;
+        // each object is a triangle
+        // each triangle has three points
+        // let's map objects so that it goes through each triangle, and finds the center of each triangle
+        // then, find the center of all of those points
+
+        let len = verts.len() as f64;
+        let sum = verts
+            .iter()
+            .map(|triangle| (triangle.vertex0 + triangle.vertex1 + triangle.vertex2) / 3.0)
+            .fold(Point3::default(), |prev, curr| prev + curr);
+
+        sum / len
+    }
+
+    pub fn radius(&self) -> f64 {
+        let verts = &self.objects;
+        // each object is a triangle
+        // each triangle has three points
+        // let's map objects so that it goes through each triangle, and finds the center of each triangle
+        // then, find the center of all of those points
+
+        let len = verts.len() as f64;
+        let sum: f64 = verts
+            .iter()
+            .map(|triangle| {
+                (triangle.vertex0.length() + triangle.vertex1.length() + triangle.vertex2.length())
+                    / 3.0
+            })
+            .sum();
+
+        sum / len
     }
 }
 
