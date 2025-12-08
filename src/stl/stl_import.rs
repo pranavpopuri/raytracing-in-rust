@@ -30,7 +30,7 @@ pub fn import_stl(
         .collect();
 
     if SHOW_DIAGONISTICS {
-        println!("Triangles: {}", triangles.len());
+        println!("{file} Triangles: {}", triangles.len());
     }
 
     Mesh::new(triangles)

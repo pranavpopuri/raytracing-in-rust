@@ -16,15 +16,15 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
 use crate::{
-    config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES, SHOW_DIAGONISTICS},
-    hittable::{HittableList, Sphere, Triangle, add_axes},
+    config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES},
+    hittable::{HittableList, Sphere, add_axes},
 };
 
 use camera::Camera;
 use color::Color;
 use hittable::Hittable;
 use image::{Rgb, RgbImage};
-use material::{Dielectric, Lambertian, Metal};
+use material::{Dielectric, Lambertian};
 use ray::Ray;
 use vec3::Point3;
 
@@ -43,98 +43,10 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
 
     let unit_direction = vec3::unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
-    (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
+    (1.0 - t) * Color::new(0.8, 0.8, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn random_scene() -> HittableList {
-    let mut world = HittableList::new();
-
-    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0.0, -1000.0, 0.0),
-        1000.0,
-        ground_material,
-    )));
-
-    for a in -11..11 {
-        for b in -11..11 {
-            let choose_mat = common::random_double();
-            let center = Point3::new(
-                a as f64 + 0.9 * common::random_double(),
-                0.2,
-                b as f64 + 0.9 * common::random_double(),
-            );
-
-            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                if choose_mat < 0.7 {
-                    // Diffuse
-                    let albedo = Color::random() * Color::random();
-                    let sphere_material = Arc::new(Lambertian::new(albedo));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
-                } else if choose_mat < 0.95 {
-                    // Metal
-                    let albedo = Color::random_range(0.5, 1.0);
-                    let fuzz = common::random_double_range(0.0, 0.5);
-                    let sphere_material = Arc::new(Metal::new(albedo, fuzz));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
-                } else {
-                    // Glass
-                    let sphere_material = Arc::new(Dielectric::new(1.5, Color::new(1.0, 1.0, 1.0)));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
-                }
-            }
-        }
-    }
-
-    let material1 = Arc::new(Dielectric::new(1.5, Color::new(1.0, 1.0, 1.0)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0.0, 1.0, 0.0),
-        1.0,
-        material1,
-    )));
-
-    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(-4.0, 1.0, 0.0),
-        1.0,
-        material2,
-    )));
-
-    let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Box::new(Sphere::new(
-        Point3::new(4.0, 1.0, 0.0),
-        1.0,
-        material3,
-    )));
-    let material4 = Arc::new(Lambertian::new(Color::new(0.8, 0.1, 0.1)));
-    let tri = Triangle::new(
-        Point3::new(-1.0, 0.0, -3.0),
-        Point3::new(1.0, 0.0, -3.0),
-        Point3::new(0.0, 1.0, -3.0),
-        material4,
-    );
-
-    world.add(Box::new(tri));
-
-    world
-}
-
-fn main() {
-    let args = Args::parse();
-
-    // World
-    let mut world = HittableList::new();
-
-    // let mesh = stl::models::dragon(Point3::new(0.0, 0.0, 0.0));
-
-    let center = Point3::new(0.0, 0.0, 0.0);
-    // let center = mesh.center();
-    // if SHOW_DIAGONISTICS {
-    //     println!("Center: {center}");
-    // }
-
-    // world.add(mesh);
-
+fn create_scene(world: &mut HittableList) {
     let water_mat = Arc::new(Dielectric::new(1.33, Color::new(0.6, 0.8, 1.0)));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
@@ -143,25 +55,27 @@ fn main() {
     )));
 
     let island_material = Arc::new(Lambertian::new(Color::new(1.0, 1.0, 0.5)));
+
     world.add(Box::new(Sphere::new(
-        Point3::new(0.0, -1000.0, 0.0),
-        800.0,
-        island_material.clone(),
+        Point3::new(0.0, -99.0, 0.0),
+        100.0,
+        island_material,
     )));
 
-    // world.add(Box::new(Sphere::new(
-    //     Point3::new(0.0, 0.0, 0.0),
-    //     5.0,
-    //     island_material,
-    // )));
+    let dragon = stl::models::dragon(Point3::new(0.0, 1.0, 0.0));
+    world.add(dragon);
+
+    let whale = stl::models::whale(Point3::new(10.0, 3.0, 10.0));
+    world.add(whale);
 
     if SHOW_AXES {
-        add_axes(&mut world, 0.2, 2.0);
+        add_axes(world, 0.2, 2.0);
     }
+}
 
-    // Camera
-    let lookfrom = Point3::new(15.0 * 3.0, 0.33 * 3.0, 3.0 * 3.0);
-    let lookat = center;
+fn create_camera() -> Camera {
+    let lookfrom = Point3::new(15.0 * 3.0, 3.0, 3.0 * 3.0);
+    let lookat = Point3::new(0.0, 0.0, 0.0);
     let vup = Point3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 30.0;
     let aperture = 0.1;
@@ -176,7 +90,20 @@ fn main() {
         dist_to_focus,
     );
 
-    // Render to image.ppm
+    cam
+}
+
+fn main() {
+    let args = Args::parse();
+
+    // World
+    let mut world = HittableList::new();
+    create_scene(&mut world);
+
+    // Camera
+    let cam = create_camera();
+
+    // Render to image.png
     let start = Instant::now();
     let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
     bar.set_style(

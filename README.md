@@ -20,13 +20,16 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 - [x] Render geometries other than spheres
 - [x] Parse `.stl` files
 - [x] Render model.
-- [ ] Multiple `.stl` files
-- [ ] Custom Skybox
+- [X] Multiple `.stl` files
+- [X] Command-line arguments (`clap`)
+- [X] Add debugging markers (like axes, etc.)
+
+## Post project todo list
 - [ ] Optimization (BVH)
-- [ ] Command-line arguments (`clap`)
-- [ ] Add debugging markers (like axes, etc.)
-- [ ] Final Scene: animated GIF of scene
+- [ ] Custom Skybox
 - [ ] TODO: center each stl upon import
+- [ ] animated GIF of scene
+- [ ] denoising
 
 ## Possible Challenges
 - Parsing `.stl` files may be difficult.

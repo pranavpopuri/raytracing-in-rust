@@ -150,11 +150,13 @@ impl Div<f64> for Vec3 {
     }
 }
 
-impl From<stl_io::Vector<f32>> for Vec3 {
-    fn from(value: stl_io::Vector<f32>) -> Self {
-        Self {
-            e: [value.0[0] as f64, value.0[1] as f64, value.0[2] as f64],
-        }
+impl From<image::Rgba<u8>> for Vec3 {
+    fn from(value: image::Rgba<u8>) -> Self {
+        Self::new(
+            value.0[0] as f64 / 255.0,
+            value.0[1] as f64 / 255.0,
+            value.0[2] as f64 / 255.0,
+        )
     }
 }
 

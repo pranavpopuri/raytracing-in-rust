@@ -69,3 +69,49 @@ pub fn dragon(pos: Point3) -> Box<Mesh> {
 
     mesh
 }
+
+pub fn cs128(pos: Point3) -> Box<Mesh> {
+    let material = Arc::new(Lambertian::new(Color::new(1.0, 0.5, 0.1)));
+
+    let scale = 1.0 / 10.0;
+    let mesh = Box::new(import_stl("simplify_cs128.stl", material, &|x, y, z| {
+        (
+            scale * x + pos.x(),
+            scale * y + pos.y(),
+            scale * z + pos.z(),
+        )
+    }));
+
+    mesh
+}
+
+fn rotate_by(x: f64, y: f64, z: f64, deg: f64) -> (f64, f64, f64) {
+    // Angle in radians
+    let theta = deg.to_radians();
+
+    // Precompute cos and sin
+    let cos_theta = theta.cos(); // ≈ -0.5
+    let sin_theta = theta.sin(); // ≈ 0.866
+
+    let new_x = x;
+    let new_y = y * cos_theta - z * sin_theta;
+    let new_z = y * sin_theta + z * cos_theta;
+
+    (new_x, new_y, new_z)
+}
+
+pub fn whale(pos: Point3) -> Box<Mesh> {
+    let material = Arc::new(Lambertian::new(Color::new(0.22, 0.42, 0.75)));
+
+    let scale = 0.5;
+    let mesh = Box::new(import_stl("whale.stl", material, &|x, y, z| {
+        let (x, y, z) = rotate_by(x, y, z, 80f64);
+        (
+            scale * x + pos.x(),
+            scale * y + pos.y(),
+            scale * z + pos.z(),
+        )
+    }));
+
+    mesh
+}
