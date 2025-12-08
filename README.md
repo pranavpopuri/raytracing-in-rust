@@ -35,6 +35,9 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 ![Dragon](./showcase/dragon.png)
 > Dragon rendered from `.stl` file
 
+## Running
+See [`RUN.md`](RUN.md)
+
 # Inspirations
 - Ray Tracing Road to Rust: https://the-ray-tracing-road-to-rust.vercel.app/
 - Scratchapixel: https://www.scratchapixel.com/index.html
