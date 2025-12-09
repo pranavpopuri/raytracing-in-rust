@@ -54,18 +54,17 @@ fn create_scene(world: &mut HittableList) {
         water_mat,
     )));
 
-    let island_material = Arc::new(Lambertian::new(Color::new(1.0, 1.0, 0.5)));
-
+    let sand_mat = Arc::new(Lambertian::new(Color::new(1.0, 1.0, 0.5)));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -99.0, 0.0),
         100.0,
-        island_material,
+        sand_mat,
     )));
 
     let dragon = stl::models::dragon(Point3::new(0.0, 1.0, 0.0));
     world.add(dragon);
 
-    let whale = stl::models::whale(Point3::new(10.0, 3.0, 10.0));
+    let whale = stl::models::whale(Point3::new(5.0, 3.0, 10.0));
     world.add(whale);
 
     for a in -11..11 {
@@ -93,7 +92,7 @@ fn create_scene(world: &mut HittableList) {
     }
 
     if SHOW_AXES {
-        add_axes(world, 0.2, 2.0);
+        add_axes(world, 0.2, 5.0);
     }
 }
 
@@ -122,7 +121,6 @@ fn main() {
 
     // World
     let mut world = HittableList::new();
-    // world.add(stl::models::grass(Point3::new(0.0, 0.0, 0.0)));
     create_scene(&mut world);
 
     // Camera

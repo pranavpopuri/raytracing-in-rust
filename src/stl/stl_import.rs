@@ -14,6 +14,7 @@ pub fn import_stl(
     file: &str,
     mat: Arc<dyn Material>,
     map: &dyn Fn(f64, f64, f64) -> (f64, f64, f64),
+    should_center: bool,
 ) -> Mesh {
     let triangles: Vec<_> = parse_stl(file)
         .into_iter()
@@ -31,7 +32,10 @@ pub fn import_stl(
     let mut mesh = Mesh::new(triangles);
     let center = mesh.center();
 
-    mesh.map(|point| point - center);
+    if should_center {
+        mesh.map(|point| point - center);
+    }
+
     mesh.map(|point| {
         let (x, y, z) = map(point.x(), point.y(), point.z());
         Point3::new(x, y, z)

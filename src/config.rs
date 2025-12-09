@@ -7,7 +7,7 @@ pub const SAMPLES_PER_PIXEL: i32 = 100;
 pub const MAX_DEPTH: i32 = 50;
 pub const OUTPUT_PATH: &'static str = "image.png";
 pub const SHOW_AXES: bool = true;
-pub const SHOW_DIAGONISTICS: bool = true;
+pub const SHOW_DIAGONISTICS: bool = false;
 
 // command line arguments
 #[derive(Parser)]
@@ -24,4 +24,7 @@ pub struct Args {
     /// Number of samples per pixel
     #[arg(short, long, default_value_t = SAMPLES_PER_PIXEL)]
     pub samples: i32,
+
+    #[arg(short, long, default_value_t = SHOW_DIAGONISTICS)]
+    pub verbose: bool,
 }
