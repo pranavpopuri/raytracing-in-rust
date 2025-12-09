@@ -6,6 +6,7 @@ use crate::vec3::{self, Point3, Vec3};
 
 #[derive(Clone, Default)]
 pub struct HitRecord {
+    /// Hit point
     pub p: Point3,
     pub normal: Vec3,
     pub mat: Option<Arc<dyn Material>>,

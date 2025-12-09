@@ -30,9 +30,14 @@ pub fn import_stl(
     }
 
     let mut mesh = Mesh::new(triangles);
-    let center = mesh.center();
+
+    if SHOW_DIAGONISTICS {
+        println!("\tCenter: {}", mesh.center());
+        println!("\tRadius: {}", mesh.radius());
+    }
 
     if should_center {
+        let center = mesh.center();
         mesh.map(|point| point - center);
     }
 

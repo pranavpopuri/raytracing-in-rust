@@ -17,7 +17,7 @@ use rayon::prelude::*;
 
 use crate::{
     config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES},
-    hittable::{HittableList, Sphere, add_axes},
+    hittable::{HittableList, Photo, Sphere, add_axes},
 };
 
 use camera::Camera;
@@ -64,7 +64,7 @@ fn create_scene(world: &mut HittableList) {
     let dragon = stl::models::dragon(Point3::new(0.0, 1.0, 0.0));
     world.add(dragon);
 
-    let whale = stl::models::whale(Point3::new(5.0, 3.0, 10.0));
+    let whale = stl::models::whale(Point3::new(15.0, 3.0, -3.0));
     world.add(whale);
 
     for a in -11..11 {
@@ -119,12 +119,22 @@ fn create_camera() -> Camera {
 fn main() {
     let args = Args::parse();
 
-    // World
-    let mut world = HittableList::new();
-    create_scene(&mut world);
-
     // Camera
     let cam = create_camera();
+
+    // World
+    let mut world = HittableList::new();
+    // create_scene(&mut world);
+
+    world.add(Box::new(Photo::new(
+        "stl_folder/cs128h.png",
+        Point3::new(0.0, 0.0, 0.0),
+        5.0,
+        2.0,
+        cam.u(),
+        cam.v(),
+        Arc::new(Lambertian::new(Color::new(0.0, 0.0, 0.0))),
+    )));
 
     // Render to image.png
     let start = Instant::now();

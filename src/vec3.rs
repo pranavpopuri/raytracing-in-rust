@@ -13,6 +13,14 @@ impl Vec3 {
         Self { e: [x, y, z] }
     }
 
+    pub fn right() -> Self {
+        Self::new(0.0, 0.0, -1.0)
+    }
+
+    pub fn bottom() -> Self {
+        Self::new(0.0, -1.0, 0.0)
+    }
+
     pub fn random() -> Vec3 {
         Vec3::new(
             common::random_double(),

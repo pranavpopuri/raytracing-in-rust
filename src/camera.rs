@@ -58,4 +58,12 @@ impl Camera {
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
         )
     }
+
+    pub fn u(&self) -> Vec3 {
+        self.u
+    }
+
+    pub fn v(&self) -> Vec3 {
+        self.v
+    }
 }
