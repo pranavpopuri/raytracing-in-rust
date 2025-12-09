@@ -18,12 +18,7 @@ pub fn import_stl(
     let triangles: Vec<_> = parse_stl(file)
         .into_iter()
         .map(|stl_triangle| {
-            let (p1, p2, p3) = map_stl_triangle(
-                stl_triangle,
-                // rotate around the x axis
-                // and scale by the scale amount
-                map,
-            );
+            let (p1, p2, p3) = map_stl_triangle(stl_triangle);
 
             Triangle::new(p1, p2, p3, mat.clone())
         })
@@ -33,10 +28,19 @@ pub fn import_stl(
         println!("{file} Triangles: {}", triangles.len());
     }
 
-    Mesh::new(triangles)
+    let mut mesh = Mesh::new(triangles);
+    let center = mesh.center();
+
+    mesh.map(|point| point - center);
+    mesh.map(|point| {
+        let (x, y, z) = map(point.x(), point.y(), point.z());
+        Point3::new(x, y, z)
+    });
+
+    mesh
 }
 
-/// Get the `stl_io::Triangle` from an stl file
+/// Get the `Vec<stl_io::Triangle>` from an stl file
 fn parse_stl(file: &str) -> Vec<stl_io::Triangle> {
     let mut file = OpenOptions::new()
         .read(true)
@@ -48,13 +52,10 @@ fn parse_stl(file: &str) -> Vec<stl_io::Triangle> {
     triangles
 }
 
-/// Take in a `stl_io::triangle`, and map it into an array of 3 points, with ops (such as rotation scaling)
-fn map_stl_triangle(
-    triangle: stl_io::Triangle,
-    func: &dyn Fn(f64, f64, f64) -> (f64, f64, f64),
-) -> (Point3, Point3, Point3) {
+/// Take in a `stl_io::triangle`, and map it into a tuple of 3 points
+fn map_stl_triangle(triangle: stl_io::Triangle) -> (Point3, Point3, Point3) {
     let out = triangle.vertices.map(|v| {
-        let (x, y, z) = func(v.0[0] as f64, v.0[1] as f64, v.0[2] as f64);
+        let (x, y, z) = (v.0[0] as f64, v.0[1] as f64, v.0[2] as f64);
         Point3::new(x, y, z)
     });
 

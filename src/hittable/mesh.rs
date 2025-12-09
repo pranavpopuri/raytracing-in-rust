@@ -12,6 +12,15 @@ impl Mesh {
         Self { objects }
     }
 
+    /// Map each point by a function
+    pub fn map(&mut self, map: impl Fn(Point3) -> Point3) {
+        for triangle in &mut self.objects {
+            triangle.vertex0 = map(triangle.vertex0);
+            triangle.vertex1 = map(triangle.vertex1);
+            triangle.vertex2 = map(triangle.vertex2);
+        }
+    }
+
     pub fn center(&self) -> Point3 {
         let verts = &self.objects;
         // each object is a triangle

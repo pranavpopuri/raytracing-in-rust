@@ -69,27 +69,27 @@ fn create_scene(world: &mut HittableList) {
     world.add(whale);
 
     for a in -11..11 {
-      for b in -11..11 {
-        let choose = common::random_double();
-        let center = Point3::new(
-          a as f64 + 0.9 * common::random_double(),
-          0.2,
-          b as f64 + 0.9 * common::random_double(),
-        );
+        for b in -11..11 {
+            let choose = common::random_double();
+            let center = Point3::new(
+                a as f64 + 0.9 * common::random_double(),
+                0.2,
+                b as f64 + 0.9 * common::random_double(),
+            );
 
-        if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-          if choose < 0.8 {
-              let grass = stl::models::grass(center);
-              world.add(grass);
-          } else if choose < 0.99 {
-              let rock = stl::models::rock(center);
-              world.add(rock);
-          } else {
-              let tree = stl::models::tree(center);
-              world.add(tree);
-          }
+            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose < 0.8 {
+                    let grass = stl::models::grass(center);
+                    world.add(grass);
+                } else if choose < 0.99 {
+                    let rock = stl::models::rock(center);
+                    world.add(rock);
+                } else {
+                    let tree = stl::models::tree(center);
+                    world.add(tree);
+                }
+            }
         }
-      }
     }
 
     if SHOW_AXES {
@@ -122,6 +122,7 @@ fn main() {
 
     // World
     let mut world = HittableList::new();
+    // world.add(stl::models::grass(Point3::new(0.0, 0.0, 0.0)));
     create_scene(&mut world);
 
     // Camera
