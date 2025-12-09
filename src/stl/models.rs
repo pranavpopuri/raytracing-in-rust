@@ -28,11 +28,11 @@ pub fn tree(pos: Point3) -> Box<Mesh> {
 pub fn grass(pos: Point3) -> Box<Mesh> {
     let material = Arc::new(Lambertian::new(Color::new(0.2, 0.8, 0.1)));
 
-    let scale = 1.0 / 250.0;
+    let scale = 1.0 / 1000.0;
     let mesh = Box::new(import_stl("grass.stl", material, &|x, y, z| {
         (
             scale * x + pos.x(),
-            scale * z + pos.y(),
+            scale * z + pos.y() - -0.5,
             scale * -y + pos.z(),
         )
     }));
@@ -43,7 +43,7 @@ pub fn grass(pos: Point3) -> Box<Mesh> {
 pub fn rock(pos: Point3) -> Box<Mesh> {
     let material = Arc::new(Lambertian::new(Color::new(0.3, 0.3, 0.3)));
 
-    let scale = 1.0 / 153.0;
+    let scale = 1.0 / 400.0;
     let mesh = Box::new(import_stl("rock.stl", material, &|x, y, z| {
         (
             scale * x + pos.x(),
