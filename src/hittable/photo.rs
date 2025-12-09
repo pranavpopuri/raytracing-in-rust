@@ -5,7 +5,7 @@ use image::{ImageBuffer, ImageReader, Rgba};
 use crate::hittable::{HitRecord, Hittable, Triangle};
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::vec3::{self, Point3, Vec3};
+use crate::vec3::{self, Point3};
 
 pub struct Photo {
     top_left: Point3,
@@ -20,7 +20,6 @@ pub struct Photo {
     v: Point3,
     rect: (Triangle, Triangle),
     pixels: ImageBuffer<Rgba<u8>, Vec<u8>>,
-    mat: Arc<dyn Material>,
 }
 
 impl Photo {
@@ -54,7 +53,6 @@ impl Photo {
                 Triangle::new(p2, p1, p3, mat.clone()),
             ),
             pixels,
-            mat,
         }
     }
 }

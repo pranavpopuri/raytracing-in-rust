@@ -46,7 +46,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     (1.0 - t) * Color::new(0.8, 0.8, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn create_scene(world: &mut HittableList) {
+fn create_scene(world: &mut HittableList, cam: &Camera) {
     let water_mat = Arc::new(Dielectric::new(1.33, Color::new(0.6, 0.8, 1.0)));
     world.add(Box::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
@@ -59,6 +59,16 @@ fn create_scene(world: &mut HittableList) {
         Point3::new(0.0, -99.0, 0.0),
         100.0,
         sand_mat,
+    )));
+
+    world.add(Box::new(Photo::new(
+        "stl_folder/cs128h.png",
+        Point3::new(0.0, 6.0, 6.4),
+        12.800,
+        1.700,
+        cam.u(),
+        cam.v(),
+        Arc::new(Lambertian::new(Color::new(0.0, 0.0, 0.0))),
     )));
 
     let dragon = stl::models::dragon(Point3::new(0.0, 1.0, 0.0));
@@ -124,17 +134,7 @@ fn main() {
 
     // World
     let mut world = HittableList::new();
-    // create_scene(&mut world);
-
-    world.add(Box::new(Photo::new(
-        "stl_folder/cs128h.png",
-        Point3::new(0.0, 0.0, 0.0),
-        5.0,
-        2.0,
-        cam.u(),
-        cam.v(),
-        Arc::new(Lambertian::new(Color::new(0.0, 0.0, 0.0))),
-    )));
+    create_scene(&mut world, &cam);
 
     // Render to image.png
     let start = Instant::now();
