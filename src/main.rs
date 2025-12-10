@@ -17,7 +17,7 @@ use rayon::prelude::*;
 
 use crate::{
     config::{ASPECT_RATIO, Args, IMAGE_HEIGHT, IMAGE_WIDTH, SHOW_AXES},
-    hittable::{HittableList, Photo, Sphere, add_axes, new_cuboid},
+    hittable::{HittableList, Photo, Sphere, add_axes},
 };
 
 use camera::Camera;
@@ -135,21 +135,6 @@ fn main() {
     // World
     let mut world = HittableList::new();
     create_scene(&mut world, &cam);
-    let straw_mat = Arc::new(Lambertian::new(Color::new(0.9, 0.9, 0.1)));
-    let mut rect = new_cuboid(-0.25, -8.0, -0.25, 0.5, 16.0, 0.5, straw_mat);
-    rect.map(|point| {
-        Point3::new(
-            point.x(),
-            0.70710678 * point.y() - 0.70710678 * point.z(),
-            0.70710678 * point.y() + 0.70710678 * point.z(),
-        )
-    });
-    world.add(rect);
-
-    let glass_mat = Arc::new(Dielectric::new(3.0, Color::new(0.2, 0.8, 0.8)));
-    let glass = new_cuboid(-4.0, -4.0, -4.0, 8.0, 8.0, 8.0, glass_mat);
-    println!("{}", glass.center());
-    world.add(glass);
 
     // Render to image.png
     let start = Instant::now();

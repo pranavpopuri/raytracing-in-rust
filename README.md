@@ -39,6 +39,9 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 ![Dragon](./showcase/dragon.png)
 > Dragon rendered from `.stl` file
 
+![Defract](./showcase/refract.png)
+> Demonstration of refraction
+
 ## Running
 See [`RUN.md`](RUN.md)
 
