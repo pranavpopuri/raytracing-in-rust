@@ -42,6 +42,9 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 ![Defract](./showcase/refract.png)
 > Demonstration of refraction
 
+![Spheres](./showcase/spheres-1000.png)
+> Many spheres, some metallic, some glass, some lambertian.
+
 ## Running
 See [`RUN.md`](RUN.md)
 
