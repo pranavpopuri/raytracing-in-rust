@@ -1,8 +1,8 @@
 ![RusTX](showcase/scene-denoised.png)
 # RusTX
 - Jerry Zhang (jerryz10)
-- Shanrong (sw101)
-- Pranav (ppopuri2)
+- Shanrong Wu (sw101)
+- Pranav Popuri (ppopuri2)
 
 ## ℹ️ Project Introduction
 Multi-threaded ray tracer implemented in rust.
