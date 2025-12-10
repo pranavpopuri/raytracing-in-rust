@@ -25,9 +25,9 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 - [X] Add debugging markers (like axes, etc.)
 
 ## Post project todo list
+- [x] TODO: center each stl upon import
 - [ ] Optimization (BVH)
 - [ ] Custom Skybox
-- [ ] TODO: center each stl upon import
 - [ ] animated GIF of scene
 - [ ] denoising
 
@@ -38,6 +38,9 @@ We will likely use image crates, such as `image`, and other crates for parsing `
 ## Showcase
 ![Dragon](./showcase/dragon.png)
 > Dragon rendered from `.stl` file
+
+![Defract](./showcase/refract.png)
+> Demonstration of refraction
 
 ## Running
 See [`RUN.md`](RUN.md)
