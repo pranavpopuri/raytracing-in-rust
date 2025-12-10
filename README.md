@@ -1,4 +1,4 @@
-![RusTX](showcase/spheres.png)
+![RusTX](showcase/scene-denoised.png)
 # RusTX
 - Jerry Zhang (jerryz10)
 - Shanrong (sw101)
