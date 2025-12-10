@@ -71,7 +71,7 @@ pub fn rock(pos: Point3) -> Box<Mesh> {
 }
 
 pub fn dragon(pos: Point3) -> Box<Mesh> {
-    let mat = Arc::new(Metal::new(Color::new(0.2, 0.8, 0.1), 0.1));
+    let mat = Arc::new(Metal::new(Color::new(0.67, 0.1, 0.1), 0.1));
 
     let scale = 1.0 / 40.0;
     let mesh = Box::new(import_stl(
